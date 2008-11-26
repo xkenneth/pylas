@@ -1,0 +1,6 @@
+meter = 'M'
+feet = 'FT'
+degrees = 'DEG'
+millimeter = 'MM'
+ohm = 'OHMM'
+gammaray = 'GAPI'
