@@ -8,7 +8,7 @@ max_line_length = 77
 
 import string
 
-from sections import sections
+from sections import version, well
 
 def is_number(num):
     return isinstance(num,(float,int,long))
@@ -36,6 +36,8 @@ def flatten(las_data,mnem,description=None):
     if val is not None:
         if is_number(val):
             data.append('%5.2f' % float(val))
+        if hasattr(val,'__iter__'):
+            pass
         else:
             data.append(cut_string(val))
     
@@ -62,11 +64,18 @@ class pylas:
         self.data = {}
         #setting the wrap
         self.set_wrap(wrap)
+        self.curves = {}
+        self.index = None
         
         self.set_mnem('VERS','2.0',description='CWLS log ASCII Standard -VERSION 2.0')
         self.set_mnem('NULL',null,description='NULL VALUE')
         
-    def set_mnem(self,mnem,value,unit=None,description=None):
+    def set_mnem(self,mnem,value,unit=None,description=None,curve=False,api_code=None):
+        if curve:
+            self.curves[mnem] = description
+            if self.index is None:
+                self.index = mnem
+        
         if not self.data.has_key(mnem):
             self.data[mnem] = {}
 
@@ -76,6 +85,9 @@ class pylas:
             self.data[mnem]['unit'] = unit
         if description:
             self.data[mnem]['description'] = description
+
+        if api_code:
+            self.data[mnem]['api_code'] = api_code
 
     def get_break_line(self):
         return '#' + '-'*max_line_length
@@ -95,15 +107,44 @@ class pylas:
         las_data = []
         
         #version section
-        for section in sections:
+
+        sections = {'VERSION':version,
+                    'WELL':well,
+                    'CURVE':self.curves}
+
+        order = ['VERSION','WELL','CURVE']
+        
+        for section in order:
             las_data.append('~%s INFORMATION' % section)
             las_data.append(newline)
-        
+            
             for mnem in sections[section]:
                 if self.data.has_key(mnem):
                     las_data.extend(flatten(self.data,mnem,sections[section][mnem]))
                     
             las_data.append(self.break_line)
             las_data.append(newline)
+
+        #data section
+        
+        las_data.append('~A')
+        
+        if len(self.curves) > 0:
+            #add the curve headers
+            for curve in self.curves:
+                las_data.extend(tab)
+                las_data.extend(curve)
+                
+            las_data.append(newline)
+
+            #add the curve data
+            for i in range(len(self.data[self.index]['value'])):
+                for curve in self.curves:
+                    las_data.append(str(self.data[curve]['value'][i]))
+                    las_data.append(tab)
+                las_data.append(newline)
+                        
+                
+            
         
         return string.join(las_data,'')
