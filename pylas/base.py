@@ -36,7 +36,7 @@ def flatten(las_data,mnem,description=None):
     if val is not None:
         if is_number(val):
             data.append('%5.2f' % float(val))
-        if hasattr(val,'__iter__'):
+        elif hasattr(val,'__iter__'):
             pass
         else:
             data.append(cut_string(val))
@@ -57,6 +57,21 @@ def get_bool(value):
         return 'YES'
     else:
         return 'NO'
+
+def everything_else(defined,data):
+    """Return all the keys not defined by a particular dict/list from another dict."""
+
+    keys = {}
+    
+    for key in data:
+        if not key in defined:
+            keys[key] = None
+            if isinstance(data[key],dict):
+                if data[key].has_key('description'):
+                    keys[key] = data[key]['description']
+
+    return keys
+        
 
 class pylas:
     def __init__(self,wrap=False,null=-9999):
@@ -108,11 +123,17 @@ class pylas:
         
         #version section
 
+        #get the keys to associate with the PARAMETER section
+        keys = everything_else(well,self.data)
+        keys = everything_else(version,keys)
+        keys = everything_else(self.curves,keys)
+        
         sections = {'VERSION':version,
                     'WELL':well,
-                    'CURVE':self.curves}
+                    'CURVE':self.curves,
+                    'PARAMETER':keys}
 
-        order = ['VERSION','WELL','CURVE']
+        order = ['VERSION','WELL','CURVE','PARAMETER']
         
         for section in order:
             las_data.append('~%s INFORMATION' % section)
@@ -144,7 +165,4 @@ class pylas:
                     las_data.append(tab)
                 las_data.append(newline)
                         
-                
-            
-        
         return string.join(las_data,'')

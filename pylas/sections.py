@@ -19,10 +19,3 @@ well = {'STRT':'START DEPTH',
         'UWI':'UNIQUE WELL ID',
         'API':'API NUMBER'
         }
-
-
-
-
-
-sections = {'VERSION':version,
-            'WELL':well}
