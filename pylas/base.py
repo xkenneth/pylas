@@ -20,11 +20,12 @@ def cut_string(value):
     return value
 
 def flatten(las_data,mnem,description=None):
+    """Flatten a mnem down to a string(list)."""
     data = []
     #mnem
     data.append(mnem)
     #unit
-    data.append(tab)
+    #data.append(tab)
     unit = ''
     if las_data[mnem].has_key('unit'):
         unit = las_data[mnem]['unit']
@@ -160,6 +161,7 @@ class pylas:
 
             #add the curve data
             for i in range(len(self.data[self.index]['value'])):
+                las_data.append(tab)
                 for curve in self.curves:
                     las_data.append(str(self.data[curve]['value'][i]))
                     las_data.append(tab)
